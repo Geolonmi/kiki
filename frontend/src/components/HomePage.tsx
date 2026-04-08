@@ -21,15 +21,53 @@ interface Draw {
 
 export function HomePage() {
   const { callApi } = useApi();
-  const [lastDraw, setLastDraw] = useState<Draw | null>(null);
+  const [draws, setDraws] = useState<Draw[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const currentDraw = draws[currentIndex] || null;
+
+  // Créer les confettis au chargement
+  const createConfetti = () => {
+    const colors = ["#FF6B6B", "#FFD93D", "#6BCB77", "#4D96FF", "#FF8C42"];
+
+    for (let i = 0; i < 50; i++) {
+      const confetti = document.createElement("div");
+      confetti.className = "confetti-piece";
+
+      const color = colors[Math.floor(Math.random() * colors.length)]!;
+      const size = Math.random() * 10 + 5;
+      const duration = Math.random() * 1.5 + 2.5;
+      const delay = Math.random() * 0.8;
+      const left = Math.random() * 100;
+      const top = Math.random() * -80 - 20; // Entre -100vh et -20vh
+      const horizontalDrift = (Math.random() - 0.5) * 200; // Dérive horizontale aléatoire
+
+      confetti.style.left = left + "%";
+      confetti.style.top = top + "vh";
+      confetti.style.width = size + "px";
+      confetti.style.height = size + "px";
+      confetti.style.backgroundColor = color;
+      confetti.style.borderRadius = "50%";
+      confetti.style.opacity = "1";
+      confetti.style.animationDuration = duration + "s";
+      confetti.style.animationDelay = delay + "s";
+      const verticalDrift = Math.random() * 100 + 50; // Chute variable
+      confetti.style.setProperty("--tx", horizontalDrift + "px");
+      confetti.style.setProperty("--ty", verticalDrift + "vh");
+
+      document.body.appendChild(confetti);
+
+      setTimeout(() => confetti.remove(), (duration + delay) * 1000);
+    }
+  };
+
   useEffect(() => {
-    const loadLastDraw = async () => {
+    const loadAllDraws = async () => {
       try {
-        const draws = await callApi<Draw[]>("/draw");
-        // Trouver le dernier tirage exécuté
-        const executed = draws
+        const allDraws = await callApi<Draw[]>("/draw");
+        // Filtrer et trier les tirages exécutés
+        const executed = allDraws
           .filter((d) => String(d.status).toLowerCase() === "executed")
           .sort(
             (a, b) =>
@@ -38,7 +76,10 @@ export function HomePage() {
           );
 
         if (executed.length > 0) {
-          setLastDraw(executed?.[0] ?? null);
+          setDraws(executed);
+          setCurrentIndex(0);
+          // Déclencher les confettis quand on a des tirages
+          setTimeout(() => createConfetti(), 300);
         }
       } catch (err) {
         console.error("Erreur lors du chargement des tirages", err);
@@ -47,7 +88,7 @@ export function HomePage() {
       }
     };
 
-    loadLastDraw();
+    loadAllDraws();
   }, []);
 
   return (
@@ -55,28 +96,60 @@ export function HomePage() {
       <div style={styles.card}>
         <h1 style={styles.title}>On se lance un Kiki ? 🎉</h1>
 
-        {!loading && lastDraw && (
-          <div style={styles.lastDrawSection}>
-            <h2 style={styles.lastDrawTitle}>
-              🏆 Tirage Kiki {lastDraw.title} ?
-            </h2>
-
-            {lastDraw.winners.length > 0 && (
-              <Wheel winners={lastDraw.winners.map((w) => w.name)} />
+        {!loading && currentDraw && (
+          <div style={styles.lastDrawSection} className="slideInUp">
+            {/* Navigation entre les tirages */}
+            {draws.length > 1 && (
+              <div style={styles.navigation}>
+                <button
+                  onClick={() =>
+                    setCurrentIndex((prev) =>
+                      prev === 0 ? draws.length - 1 : prev - 1
+                    )
+                  }
+                  style={styles.navButton}
+                >
+                  ← Précédent
+                </button>
+                <span style={styles.navInfo}>
+                  {currentIndex + 1} / {draws.length}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentIndex((prev) =>
+                      prev === draws.length - 1 ? 0 : prev + 1
+                    )
+                  }
+                  style={styles.navButton}
+                >
+                  Suivant →
+                </button>
+              </div>
             )}
 
-            <div style={styles.lastDrawCard}>
+            <h2 style={styles.lastDrawTitle}>
+              🏆 Tirage Kiki {currentDraw.title} ?
+            </h2>
+
+            {currentDraw.winners.length > 0 && (
+              <Wheel winners={currentDraw.winners.map((w) => w.name)} />
+            )}
+
+            <div style={styles.lastDrawCard} className="glow subtlePulse">
               <p style={styles.drawDate}>
                 Kiki prévu pour le{" "}
-                {new Date(lastDraw.scheduledDate).toLocaleDateString("fr-FR", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {new Date(currentDraw.scheduledDate).toLocaleDateString(
+                  "fr-FR",
+                  {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }
+                )}
               </p>
               <p style={styles.drawDate}>
                 Kiki tiré au sort le{" "}
-                {new Date(lastDraw.executedAt || "").toLocaleDateString(
+                {new Date(currentDraw.executedAt || "").toLocaleDateString(
                   "fr-FR",
                   {
                     year: "numeric",
@@ -84,15 +157,15 @@ export function HomePage() {
                     day: "numeric",
                     hour: "2-digit",
                     minute: "2-digit",
-                  },
+                  }
                 )}
               </p>
 
-              {lastDraw.winners.length > 0 && (
+              {currentDraw.winners.length > 0 && (
                 <div style={styles.winnersSection}>
                   <p style={styles.winnersLabel}>Tirés au sort :</p>
                   <div style={styles.winnersList}>
-                    {lastDraw.winners.map((winner, idx) => (
+                    {currentDraw.winners.map((winner, idx) => (
                       <div key={winner.id} style={styles.winnerCard}>
                         <div style={styles.winnerRank}>#{idx + 1}</div>
                         <div style={styles.winnerName}>{winner.name}</div>
@@ -103,14 +176,14 @@ export function HomePage() {
               )}
 
               <p style={styles.statsText}>
-                {lastDraw.participants.length} participant(s) •{" "}
-                {lastDraw.winners.length} gagnant(s)
+                {currentDraw.participants.length} participant(s) •{" "}
+                {currentDraw.winners.length} gagnant(s)
               </p>
             </div>
           </div>
         )}
 
-        {!loading && !lastDraw && (
+        {!loading && draws.length === 0 && (
           <p style={styles.cta}>
             Aucun tirage Kiki pour le moment. Accédez à l'administration pour
             créer votre premier tirage !
@@ -244,5 +317,31 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: "1rem",
     fontSize: "0.9rem",
     color: "#666",
+  },
+  navigation: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "1rem",
+    marginBottom: "1.5rem",
+  },
+  navButton: {
+    backgroundColor: "#ff6b35",
+    color: "#fff",
+    border: "none",
+    padding: "0.6rem 1.2rem",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "0.9rem",
+    transition: "all 0.3s ease",
+    boxShadow: "0 4px 12px rgba(255, 107, 53, 0.3)",
+  },
+  navInfo: {
+    fontSize: "0.9rem",
+    fontWeight: "bold",
+    color: "#ff6b35",
+    minWidth: "50px",
+    textAlign: "center" as const,
   },
 };
