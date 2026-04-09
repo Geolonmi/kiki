@@ -255,15 +255,15 @@ export function DrawAdminPage() {
         <div style={styles.modal}>
           <div style={styles.modalContent}>
             <h2 style={styles.modalTitle}>
-              Réutiliser les candidats du dernier tirage ?
+              Réutiliser les candidat·e·s du dernier tirage ?
             </h2>
             <p style={styles.modalText}>
               Le tirage précédent "{lastExecutedDraw.title}" contenait{" "}
               <strong>{lastExecutedDraw.participants.length}</strong>{" "}
-              candidat(s).
+              candidat·e·s.
             </p>
             <p style={styles.modalText}>
-              Voulez-vous importer automatiquement ces candidats dans le nouveau
+              Voulez-vous importer automatiquement ces candidat·e·s dans le nouveau
               tirage Kiki ?
             </p>
 
@@ -272,7 +272,7 @@ export function DrawAdminPage() {
                 style={styles.buttonImport}
                 onClick={handleImportParticipants}
               >
-                ✓ Réutiliser les candidats
+                ✓ Réutiliser les candidat·e·s
               </button>
               <button
                 style={styles.buttonSkip}
@@ -316,7 +316,7 @@ export function DrawAdminPage() {
           </div>
 
           <div style={styles.formGroup}>
-            <label>Nombre de gagnants</label>
+            <label>Nombre de gagnant·e·s</label>
             <input
               type="number"
               min="1"
@@ -349,7 +349,7 @@ export function DrawAdminPage() {
               >
                 <div style={styles.drawItemTitle}>{draw.title}</div>
                 <div style={styles.drawItemMeta}>
-                  {draw.participants.length} participant(s)
+                  {draw.participants.length} participant·e·s
                 </div>
               </button>
             ))}
@@ -365,7 +365,7 @@ export function DrawAdminPage() {
                 ⚠️ Supprimer le tirage "{currentDraw.title}" ?
               </h2>
               <p style={styles.modalText}>
-                Cette action est irréversible. Tous les participants et
+                Cette action est irréversible. Tou·te·s les participant·e·s et
                 résultats seront supprimés.
               </p>
 
@@ -408,14 +408,14 @@ export function DrawAdminPage() {
                 )}
               </p>
               <p>
-                <strong>Gagnants à sélectionner:</strong>{" "}
+                <strong>Gagnant·e·s à sélectionner :</strong>{" "}
                 {currentDraw.numberOfWinners}
               </p>
             </div>
 
             {isStatus(currentDraw.status, "draft") && (
               <>
-                <h3 style={styles.sectionTitle}>Ajouter des candidats</h3>
+                <h3 style={styles.sectionTitle}>Ajouter des candidat·e·s</h3>
 
                 <div style={styles.formGroup}>
                   <input
@@ -427,7 +427,7 @@ export function DrawAdminPage() {
                         handleAddParticipant();
                       }
                     }}
-                    placeholder="Nom du candidat"
+                    placeholder="Nom du/de la candidat·e"
                     style={styles.input}
                   />
                 </div>
@@ -436,17 +436,17 @@ export function DrawAdminPage() {
                   style={styles.buttonSecondary}
                   onClick={handleAddParticipant}
                 >
-                  Ajouter un candidat
+                  Ajouter un·e candidat·e
                 </button>
               </>
             )}
 
             <h3 style={styles.sectionTitle}>
-              Candidats ({currentDraw.participants.length})
+              Candidat·e·s ({currentDraw.participants.length})
             </h3>
 
             {currentDraw.participants.length === 0 ? (
-              <p>Aucun candidat</p>
+              <p>Aucun·e candidat·e</p>
             ) : (
               <div style={styles.participantsList}>
                 {currentDraw.participants.map((p) => (
@@ -456,7 +456,7 @@ export function DrawAdminPage() {
                       <button
                         style={styles.buttonDeleteInChip}
                         onClick={() => handleRemoveParticipant(p.id)}
-                        title="Supprimer ce participant"
+                        title="Supprimer ce·tte candidat·e"
                       >
                         ✕
                       </button>
@@ -497,7 +497,7 @@ export function DrawAdminPage() {
             {isStatus(currentDraw.status, "executed") && (
               <>
                 <h3 style={styles.sectionTitle}>
-                  🏆 Les chanceux ({currentDraw.winners.length})
+                  🏆 Les élu·e·s ({currentDraw.winners.length})
                 </h3>
                 <div style={styles.winnersList}>
                   {currentDraw.winners.map((w, idx) => (

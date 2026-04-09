@@ -163,7 +163,7 @@ export function HomePage() {
 
               {currentDraw.winners.length > 0 && (
                 <div style={styles.winnersSection}>
-                  <p style={styles.winnersLabel}>Tirés au sort :</p>
+                  <p style={styles.winnersLabel}>Tiré·e·s au sort :</p>
                   <div style={styles.winnersList}>
                     {currentDraw.winners.map((winner, idx) => (
                       <div key={winner.id} style={styles.winnerCard}>
@@ -176,8 +176,8 @@ export function HomePage() {
               )}
 
               <p style={styles.statsText}>
-                {currentDraw.participants.length} participant(s) •{" "}
-                {currentDraw.winners.length} gagnant(s)
+                {currentDraw.participants.length} participant·e·s •{" "}
+                {currentDraw.winners.length} gagnant·e·s
               </p>
             </div>
           </div>
