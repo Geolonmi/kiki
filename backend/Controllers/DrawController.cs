@@ -9,16 +9,10 @@ namespace TirageAuSort.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class DrawController : ControllerBase
+public class DrawController(IDrawService drawService, ILogger<DrawController> logger) : ControllerBase
 {
-    private readonly IDrawService _drawService;
-    private readonly ILogger<DrawController> _logger;
-
-    public DrawController(IDrawService drawService, ILogger<DrawController> logger)
-    {
-        _drawService = drawService;
-        _logger = logger;
-    }
+    private readonly IDrawService _drawService = drawService;
+    private readonly ILogger<DrawController> _logger = logger;
 
     private string GetCurrentUserEmail()
     {
@@ -84,6 +78,29 @@ public class DrawController : ControllerBase
         try
         {
             _drawService.AddParticipant(drawId, request);
+            var draw = _drawService.GetDrawById(drawId);
+            return Ok(draw);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Ajouter plusieurs participants en une seule fois.
+    /// </summary>
+    [HttpPost("{drawId}/participants/bulk")]
+    public IActionResult AddParticipantsBulk(Guid drawId, [FromBody] AddParticipantsBulkRequest request)
+    {
+        if (request.Names == null || request.Names.Count == 0)
+            return BadRequest("La liste de noms est vide");
+
+        try
+        {
+            foreach (var name in request.Names.Where(n => !string.IsNullOrWhiteSpace(n)))
+                _drawService.AddParticipant(drawId, new CreateParticipantRequest { Name = name.Trim() });
+
             var draw = _drawService.GetDrawById(drawId);
             return Ok(draw);
         }

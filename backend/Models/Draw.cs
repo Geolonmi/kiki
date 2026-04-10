@@ -1,7 +1,10 @@
+using Newtonsoft.Json;
+
 namespace TirageAuSort.Api.Models;
 
 public class Draw
 {
+    [JsonProperty("id")]
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Title { get; set; } = string.Empty;
     public string CreatedBy { get; set; } = string.Empty;

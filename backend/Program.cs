@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
+using Microsoft.Azure.Cosmos;
 using TirageAuSort.Api.Services;
 using System.Text.Json.Serialization;
 
@@ -28,8 +29,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-// --- Enregistrement des services métier ---
-builder.Services.AddSingleton<IDrawService, DrawService>();
+// --- CosmosDB ---
+builder.Services.AddSingleton(sp =>
+    new CosmosClient(builder.Configuration["CosmosDb:ConnectionString"]));
+builder.Services.AddSingleton<IDrawService, CosmosDrawService>();
+builder.Services.AddSingleton<IGroupService, CosmosGroupService>();
 
 // --- Configuration JSON pour sérialiser les enums en strings ---
 builder.Services.AddControllers()

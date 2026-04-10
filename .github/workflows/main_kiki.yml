@@ -41,6 +41,7 @@ jobs:
         run: |
           sed -i 's/REPLACE_WITH_TENANT_ID/${{ secrets.TENANT_ID }}/g' backend/appsettings.json
           sed -i 's/REPLACE_WITH_CLIENT_ID/${{ secrets.BACK_CLIENT_ID }}/g' backend/appsettings.json
+          sed -i 's|\$COSMOS_CONNECTION_STRING|${{ secrets.COSMOS_CONNECTION_STRING }}|g' backend/appsettings.json
 
       # 3. Setup .NET
       - name: Set up .NET Core

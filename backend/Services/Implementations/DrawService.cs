@@ -3,19 +3,8 @@ using TirageAuSort.Api.Models;
 namespace TirageAuSort.Api.Services;
 
 /// <summary>
-/// Service de gestion des tirages au sort (stockage en mémoire ).
+/// Implémentation en mémoire du service de tirages au sort.
 /// </summary>
-public interface IDrawService
-{
-    Draw CreateDraw(CreateDrawRequest request, string createdBy);
-    Draw? GetDrawById(Guid id);
-    List<Draw> GetAllDraws();
-    void AddParticipant(Guid drawId, CreateParticipantRequest request);
-    void RemoveParticipant(Guid drawId, Guid participantId);
-    Draw ExecuteDraw(Guid drawId);
-    void DeleteDraw(Guid drawId);
-}
-
 public class DrawService : IDrawService
 {
     private readonly Dictionary<Guid, Draw> _draws = new();
@@ -53,15 +42,13 @@ public class DrawService : IDrawService
             throw new InvalidOperationException($"Tirage {drawId} non trouvé");
 
         if (draw.Status != DrawStatus.Draft)
-            throw new InvalidOperationException("Impossible d'ajouter des participants à un tirage non en brouillon");
+            throw new InvalidOperationException("Impossible d'ajouter des participant·e·s à un tirage non en brouillon");
 
-        var participant = new Participant
+        draw.Participants.Add(new Participant
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
-        };
-
-        draw.Participants.Add(participant);
+        });
     }
 
     public void RemoveParticipant(Guid drawId, Guid participantId)
@@ -70,7 +57,7 @@ public class DrawService : IDrawService
             throw new InvalidOperationException($"Tirage {drawId} non trouvé");
 
         if (draw.Status != DrawStatus.Draft)
-            throw new InvalidOperationException("Impossible de supprimer des participants d'un tirage non en brouillon");
+            throw new InvalidOperationException("Impossible de supprimer des participant·e·s d'un tirage non en brouillon");
 
         var participant = draw.Participants.FirstOrDefault(p => p.Id == participantId);
         if (participant != null)
@@ -84,15 +71,13 @@ public class DrawService : IDrawService
 
         if (draw.Participants.Count < draw.NumberOfWinners)
             throw new InvalidOperationException(
-                $"Pas assez de participants ({draw.Participants.Count}) pour {draw.NumberOfWinners} gagnants");
+                $"Pas assez de participant·e·s ({draw.Participants.Count}) pour {draw.NumberOfWinners} gagnant·e·s");
 
-        // Sélectionner aléatoirement les gagnants sans remplacement
-        var winners = draw.Participants
+        draw.Winners = draw.Participants
             .OrderBy(_ => _random.Next())
             .Take(draw.NumberOfWinners)
             .ToList();
 
-        draw.Winners = winners;
         draw.Status = DrawStatus.Executed;
         draw.ExecutedAt = DateTime.UtcNow;
 
